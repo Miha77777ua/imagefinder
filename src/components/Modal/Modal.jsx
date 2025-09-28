@@ -2,7 +2,7 @@ import React from "react";
 
 export class Modal extends React.Component {
   closeModalCallback = (ev) => {
-    if (ev.key === "Escape") {
+    if (ev.key === "Escape" || ev.target.id === "overlay") {
       this.props.closeModal(ev, this.props.currentModalPicture);
     }
   }

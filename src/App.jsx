@@ -13,6 +13,7 @@ class App extends React.Component {
     completedKeyword: "",
     page: 1,
     notLoaded: true,
+    loadMoreActive: false,
     currentModalPicture: "",
     isModalOpen: false,
     isLoading: false,
@@ -27,11 +28,12 @@ class App extends React.Component {
 
     const data = await api.getPics(this.state.keyword, this.changeLoadingValue);
 
-    if (data[0]) {
+    if (data[0][0]) {
       this.setState({
-        pics: data,
+        pics: data[0],
         notLoaded: false,
         completedKeyword: this.state.keyword,
+        loadMoreActive: data[1],
       });
     } else {
       this.setState({
@@ -56,8 +58,9 @@ class App extends React.Component {
     const data = await api.loadNewPage(this.state.completedKeyword, this.state.pics, this.state.page + 1, this.changeLoadingValue);
 
     this.setState((prev) => ({
-      pics: data,
+      pics: data[0],
       page: prev.page + 1,
+      loadMoreActive: data[1],
     }));
   }
 
@@ -87,7 +90,7 @@ class App extends React.Component {
           currentModalPicture={this.state.currentModalPicture}
           closeModal={this.toggleModal}
         />}
-        {!this.state.notLoaded && <Button classOfButton="Button" handleClick={this.loadMore}>Load more</Button>}
+        {this.state.loadMoreActive && <Button classOfButton="Button" handleClick={this.loadMore}>Load more</Button>}
       </div>
     );
   }
