@@ -1,17 +1,13 @@
-import React from "react";
-
-export class ImageGalleryItem extends React.Component {
-  render() {
-    return (
-      <li className="ImageGalleryItem" id={this.props.specid}>
-        <img
-          src={this.props.url}
-          alt="Picture"
-          className="ImageGalleryItem-image"
-          id="image"
-          onClick={(ev) => this.props.openModal(ev, this.props.modalURL)}
-        />
-      </li>
-    );
-  }
+export const ImageGalleryItem = ({ specid, url, openModal, modalURL }) => {
+  return (
+    <li className="ImageGalleryItem" id={specid}>
+      <img
+        src={url}
+        alt="Picture"
+        className="ImageGalleryItem-image"
+        id="image"
+        onClick={(ev) => openModal(ev, modalURL)}
+      />
+    </li>
+  );
 }

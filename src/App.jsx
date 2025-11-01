@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useCallback } from "react";
 import { Searchbar } from "./components/Searchbar/Searchbar";
 import { ImageGallery } from "./components/ImageGallery/ImageGallery.jsx";
 import { Button } from "./components/Button/Button.jsx";
@@ -6,94 +6,80 @@ import { Modal } from "./components/Modal/Modal.jsx";
 import { InfinitySpin } from "react-loader-spinner";
 import api from "./api/api.js";
 
-class App extends React.Component {
-  state = {
-    pics: [],
-    keyword: "",
-    completedKeyword: "",
-    page: 1,
-    notLoaded: true,
-    loadMoreActive: false,
-    currentModalPicture: "",
-    isModalOpen: false,
-    isLoading: false,
-  }
+const App = () => {
+  const [pics, setPics] = useState([]);
+  const [keyword, setKeyword] = useState("");
+  const [completedKeyword, setCompletedKeyword] = useState("");
+  const [page, setPage] = useState(1);
+  const [notLoaded, setNotLoaded] = useState(true);
+  const [loadMoreActive, setLoadMoreActive] = useState(false);
+  const [currentModalPicture, setCurrentModalPicture] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  loadPics = async (ev) => {
+  const loadPics = useCallback(async (ev) => {
     ev.preventDefault();
 
-    this.setState({
-      page: 1,
-    })
+    setPage(1);
 
-    const data = await api.getPics(this.state.keyword, this.changeLoadingValue);
+    const data = await api.getPics(keyword, changeLoadingValue);
 
     if (data[0][0]) {
-      this.setState({
-        pics: data[0],
-        notLoaded: false,
-        completedKeyword: this.state.keyword,
-        loadMoreActive: data[1],
-      });
+      setPics(data[0]);
+      setNotLoaded(false);
+      setCompletedKeyword(keyword);
+      setLoadMoreActive(data[1]);
+      setIsLoading(false);
     } else {
-      this.setState({
-        notLoaded: true,
-      })
+      setNotLoaded(true);
+      setIsLoading(false);
+      setLoadMoreActive(false);
     }
+  }, [keyword]);
+
+  const changeLoadingValue = () => {
+    setIsLoading(!isLoading);
   }
 
-  changeLoadingValue = () => {
-    this.setState((prev) => ({
-      isLoading: !prev.isLoading,
-    }));
+  const updateKeyword = (ev) => {
+    setKeyword(ev.target.value);
   }
 
-  updateKeyword = (ev) => {
-    this.setState({
-      keyword: ev.target.value,
-    });
-  }
+  const loadMore = useCallback(async () => {
+    const data = await api.loadNewPage(completedKeyword, pics, page + 1, changeLoadingValue);
 
-  loadMore = async () => {
-    const data = await api.loadNewPage(this.state.completedKeyword, this.state.pics, this.state.page + 1, this.changeLoadingValue);
+    setPics(data[0]);
+    setPage(page + 1);
+    setLoadMoreActive(data[1]);
+    setIsLoading(false);
+  }, [completedKeyword, page]);
 
-    this.setState((prev) => ({
-      pics: data[0],
-      page: prev.page + 1,
-      loadMoreActive: data[1],
-    }));
-  }
-
-  toggleModal = (ev, modalURL) => {
+  const toggleModal = (ev, modalURL) => {
     if (["overlay", "image"].includes(ev.target.id) || ev.type === "keydown") {
-      this.setState((prev) => ({
-        isModalOpen: !prev.isModalOpen,
-        currentModalPicture: modalURL,
-      }));
+      setIsModalOpen(!isModalOpen);
+      setCurrentModalPicture(modalURL);
     }
   }
 
-  render() {
-    return (
-      <div className="App">
-        {this.state.isLoading && <div className="loading-overlay">
-          <InfinitySpin
-            visible={true}
-            width="200"
-            color="#4fa94d"
-            ariaLabel="infinity-spin-loading"
-          />
-        </div>}
-        <Searchbar loadPics={this.loadPics} keyword={this.state.keyword} updateKeyword={this.updateKeyword} />
-        <ImageGallery data={this.state.pics} notLoaded={this.state.notLoaded} openModal={this.toggleModal} />
-        {this.state.isModalOpen && <Modal
-          currentModalPicture={this.state.currentModalPicture}
-          closeModal={this.toggleModal}
-        />}
-        {this.state.loadMoreActive && <Button classOfButton="Button" handleClick={this.loadMore}>Load more</Button>}
-      </div>
-    );
-  }
+  return (
+    <div className="App">
+      {isLoading && <div className="loading-overlay">
+        <InfinitySpin
+          visible={true}
+          width="200"
+          color="#4fa94d"
+          ariaLabel="infinity-spin-loading"
+        />
+      </div>}
+      <Searchbar loadPics={loadPics} keyword={keyword} updateKeyword={updateKeyword} />
+      <ImageGallery data={pics} notLoaded={notLoaded} openModal={toggleModal} />
+      {isModalOpen && <Modal
+        currentModalPicture={currentModalPicture}
+        closeModal={toggleModal}
+      />}
+      {loadMoreActive && <Button classOfButton="Button" handleClick={loadMore}>Load more</Button>}
+    </div>
+  );
 }
 
 export default App;
