@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useModal } from "./hooks/useModal.js";
 import { Searchbar } from "./components/Searchbar/Searchbar";
 import { ImageGallery } from "./components/ImageGallery/ImageGallery.jsx";
 import { Button } from "./components/Button/Button.jsx";
@@ -14,7 +15,7 @@ const App = () => {
   const [notLoaded, setNotLoaded] = useState(true);
   const [loadMoreActive, setLoadMoreActive] = useState(false);
   const [currentModalPicture, setCurrentModalPicture] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useModal(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadPics = useCallback(async (ev) => {
